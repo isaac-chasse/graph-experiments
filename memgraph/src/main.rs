@@ -1,4 +1,5 @@
 use csv::ReaderBuilder;
+use dotenv::dotenv;
 use std::{collections::HashMap, fs::File, io::BufReader, sync::{Arc, Mutex}, u32, usize, time::Duration};
 
 use tracing::{info, warn};
@@ -84,6 +85,10 @@ impl Graph {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
+    let project_path = std::env::var("PROJECT_PATH").expect("Expected a project path env var");
+
     // initialize tracing subscriber
     let subscriber = tracing_subscriber::fmt().compact().finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
@@ -92,10 +97,8 @@ async fn main() {
     let port = std::env::var("PORT").unwrap_or("8000".to_string());
 
     // grab benchmark csv
-    let csv_path = std::env::var("CSV_BENCHMARK").unwrap_or(
-        "/Users/isaac.chasse/coding/rustlang/graph-experiments/data/benches/ca-HepPh_adj.tsv"
-            .to_string(),
-    );
+    let mut csv_path = std::env::var("BENCHMARK_PATH").expect("Expected benchmark dataset in env var");
+    csv_path = format!("{}{}", project_path, csv_path);
     let expected_node_count = std::env::var("EXPECTED_NODE_COUNT")
         .unwrap_or("5000000".to_string())
         .parse::<u32>()
